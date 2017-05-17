@@ -1,76 +1,80 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-//using EventManager;
 using System;
 
 public class BlockController : MonoBehaviour
 {
-	public int value;
-	public int x;
-	public int y;
-
-	public float offset;
-
-	[SerializeField]
-	GameObject selectedObject;
-
-
-	// Use this for initialization
-	void OnEnable()
-	{
-		isActivated = false;
-		offset = 0.07f;
-	}
-
-	public void Init(int x, int y, int value)
-	{
-		this.x = x;
-		this.y = y;
-		this.value = value;
-
-		gameObject.name = x + "" + y;
-	}
-
-	private bool _isActived;
-
-	public bool isActivated
-	{
-		get { return _isActived; }
-		set
-		{
-			_isActived = value;
-			ActiveBlock(value);
+	private int _x;
+	public int x {
+		get {
+			return _x;
+		}
+		set {
+			_x = value;
 		}
 	}
 
+	private int _y;
+	public int y {
+		get {
+			return _y;
+		}
+		set {
+			_y = value;
+		}
+	}
+
+	[SerializeField]
+	private int _value;
+	public int value {
+		get {
+			return _value;
+		}
+	}
+
+	private bool _isActivated;
+	public bool isActivated {
+		get {
+			return _isActivated;
+		}
+		set {
+			_isActivated = value;
+			ActiveBlock (value);
+		}
+	}
+
+	[SerializeField]
+	private GameObject selectedObject;
+
+	void OnEnable()
+	{
+		isActivated = false;
+	}
+
+	public void Init(int x, int y)
+	{
+		this.x = x;
+		this.y = y;
+		//this.value = value;
+
+		gameObject.name = x + "-" + y;
+	}
 
 	void ActiveBlock(bool isActivated)
 	{
-		selectedObject.SetActive(isActivated);
+		if (selectedObject != null)
+			selectedObject.SetActive (isActivated);
 	}
-
-
-
-
-
 
 	public void DestroyBlock()
 	{
-		//ContentMgr.Instance.Despaw(gameObject);
-				Destroy (gameObject);
+		Destroy (gameObject);
 	}
 
 	public void OnMouseDown()
 	{
-
-		Debug.Log("tap");
-
-		//if (GameController.Instance.isMerging || GameController.Instance.currentState == GameController.GameState.Waiting) return;
-		//this.PostEvent(EventID.BlockTap, this);
-		//GameController.Instance.CheckTap(this);
-		Debug.Log("tap success");
-
+		GameController.Instance.CheckTap(this);
 	}
 
 }
