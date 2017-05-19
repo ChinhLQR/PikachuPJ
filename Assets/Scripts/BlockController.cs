@@ -61,10 +61,18 @@ public class BlockController : MonoBehaviour
 		gameObject.name = x + "-" + y;
 	}
 
+	void Update ()
+	{
+		transform.GetChild (0).gameObject.SetActive (isActivated);
+	}
+
 	void ActiveBlock(bool isActivated)
 	{
-		if (selectedObject != null)
+		if (selectedObject != null) {
+			selectedObject = transform.GetChild (0).gameObject;
 			selectedObject.SetActive (isActivated);
+
+		}
 	}
 
 	public void DestroyBlock()
