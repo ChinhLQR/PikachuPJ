@@ -122,6 +122,8 @@ public class GameController : MonoBehaviour
 		blockNew.gameObject.SetActive (false);
 		block.DestroyBlock ();
 	}
+		
+
 	bool CheckOutOfRange(int posX, int posY) {
 		if (posX < 0 || posY < 0 || gridSizeX <= posX || gridSizeY <= posY)
 			return true;
@@ -132,12 +134,30 @@ public class GameController : MonoBehaviour
 			return true;
 		return false;
 	}
+
+	List<BlockController> GetNeighbor(BlockController block) {
+		List<BlockController> neighbor = new List<BlockController>();
+		if (!CheckOutOfRange (block.x + 1, block.y))
+			neighbor.Add (board [block.x + 1, block.y]);
+		if (!CheckOutOfRange (block.x, block.y + 1))
+			neighbor.Add (board [block.x, block.y + 1]);
+		if (!CheckOutOfRange (block.x - 1, block.y))
+			neighbor.Add (board [block.x - 1, block.y]);
+		if (!CheckOutOfRange (block.x, block.y-1))
+			neighbor.Add (board [block.x, block.y - 1]);
+		return neighbor;
+	}
 	//Tim duong di 
+
+
 	bool BFSFindPath(BlockController block, BlockController targetBlock)
 	{
-		Queue<BlockController> queue = new Queue<BlockController>();
+		Debug.Log ("=====");
+		Stack<BlockController> list = new Stack<BlockController>();
 		BlockController currentBlock;
+		BlockController lastBlock;
 		BlockController[,] parentBlock = new BlockController[gridSizeX, gridSizeY];
+		bool isColing = false;
 
 		int[,] visit = new int[gridSizeX, gridSizeY];
 		//Khoi tao mang visit dnah dau da tham va hoan thanh tham
@@ -148,76 +168,51 @@ public class GameController : MonoBehaviour
 				visit[i, j] = 0; // = 0 la chua tham
 			}
 		}
-
-		queue.Enqueue(block);
-		while (queue.Count > 0)
+		int count2 = 0;
+		list.Push(block);
+		while (list.Count > 0)
 		{
-			currentBlock = queue.Dequeue();
-			//Debug.Log ("?");
+//			Debug.Log ("A");
+			currentBlock = list.Pop();
+
+			var parent1 = parentBlock[currentBlock.x,currentBlock.y];
+			if (parent1 != null) {
+				var parent2 = parentBlock [parent1.x, parent1.y];
+				if (parent2 != null) {
+					if ((currentBlock.x != parent1.x) && (parent2.x == parent1.x))
+						count2++;
+					if ((currentBlock.y != parent1.y) && (parent2.y == parent1.y))
+						count2++;
+				}
+				if (count2 > 2) {
+					count2 = 0;
+					continue;
+				}
+			}
 			visit[currentBlock.x, currentBlock.y] = 1; // = 1 la da tham
 			// Check 4 huong xem co target khong
+			//Debug.Log(currentBlock.x + "--" + currentBlock.y);
 			if (CompareBlock (currentBlock, targetBlock)) {
 				break;
 			}
+			var neighbor = GetNeighbor (currentBlock);
+			foreach (BlockController neighborBlock in neighbor) {
+				if ((visit [neighborBlock.x, neighborBlock.y] == 1) || (list.Contains (neighborBlock))) {
+					continue;
+				}
+				if ((CompareBlock (neighborBlock, targetBlock) || (neighborBlock.value == 0))) {
+					list.Push (neighborBlock);
+					parentBlock [neighborBlock.x, neighborBlock.y] = currentBlock;
+				}
+			}
 
-			//Kiem tra tim 4 huong neu khong ra khoi grid && (hoac la target hoac la gia tri grid == 0) && chua duoc visit. thi Enqueue va gan parent
-			if (!CheckOutOfRange (currentBlock.x + 1, currentBlock.y) 
-				&& (CompareBlock (board [currentBlock.x + 1, currentBlock.y], targetBlock) ||(board [currentBlock.x + 1, currentBlock.y].value == 0))
-				&& (visit [currentBlock.x + 1, currentBlock.y] == 0)) 
-			{
-				queue.Enqueue (board [currentBlock.x + 1, currentBlock.y]);
-				parentBlock [currentBlock.x + 1, currentBlock.y] = currentBlock;
-			}
-			if (!CheckOutOfRange (currentBlock.x, currentBlock.y + 1)
-				&& (CompareBlock (board [currentBlock.x, currentBlock.y + 1], targetBlock) || (board [currentBlock.x, currentBlock.y + 1].value == 0))
-				&& (visit [currentBlock.x, currentBlock.y + 1] == 0)) {
-				queue.Enqueue (board [currentBlock.x, currentBlock.y + 1]);
-				parentBlock [currentBlock.x, currentBlock.y + 1] = currentBlock;
-			}
-			if (!CheckOutOfRange (currentBlock.x - 1, currentBlock.y)
-				&& (CompareBlock (board [currentBlock.x - 1, currentBlock.y], targetBlock) || (board [currentBlock.x - 1, currentBlock.y].value == 0))
-				&& (visit [currentBlock.x - 1, currentBlock.y] == 0)) {
-				queue.Enqueue (board [currentBlock.x - 1, currentBlock.y]);
-				parentBlock [currentBlock.x - 1, currentBlock.y] = currentBlock;
-			}
-			if (!CheckOutOfRange (currentBlock.x, currentBlock.y - 1)
-				&& (CompareBlock (board [currentBlock.x, currentBlock.y - 1], targetBlock) || (board [currentBlock.x, currentBlock.y - 1].value == 0))
-				&& (visit [currentBlock.x, currentBlock.y - 1] == 0)) {
-				queue.Enqueue (board [currentBlock.x, currentBlock.y - 1]);
-				parentBlock [currentBlock.x, currentBlock.y - 1] = currentBlock;
-			}
 		}
 
-		currentBlock = targetBlock;
-		BlockController parent = parentBlock[currentBlock.x, currentBlock.y];
-		bool isColing = false;
-		//, isRowing = false;
-		if (parent == null)
+
+		if (parentBlock [targetBlock.x, targetBlock.y] == null)
 			return false;
-		if (currentBlock.x == parent.x) {
-			isColing = true;
-			//isRowing = false;
+		return true;
 
-		}
-		currentBlock = parent;
-		int count = 0;
-		while (!CompareBlock(currentBlock,block))
-		{
-			parent = parentBlock[currentBlock.x, currentBlock.y];
-			if (isColing && (currentBlock.x != parent.x)) {
-				count++;
-				isColing = false;
-			} 
-			if (!isColing && (currentBlock.y != parent.y)) {
-				count++;
-				isColing = true;
-			}
-
-			currentBlock = parent;
-		}
-		if (count <= 2)
-			return true;
-		return false;
 	}
 
 	public void ClearBoard()
