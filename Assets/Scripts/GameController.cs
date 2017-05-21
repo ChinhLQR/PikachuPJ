@@ -45,7 +45,10 @@ public class GameController : MonoBehaviour
 	private float offsetX;
 	[SerializeField]
 	private BlockController[] blocks;
-	bool founded = false;
+	private Color lineColor;
+	private bool founded = false;
+	private bool isDrawed = false;
+
 	public void Start()
 	{
 		numBlockActivated = 0;
@@ -109,20 +112,20 @@ public class GameController : MonoBehaviour
 
 				// Check Path neu co thi xoa khong thi de-active
 				founded = false;
+				lineColor = Color.red;
+				isDrawed = false;
 				if ((blocksActivated [0].value == blocksActivated [1].value)
 					&& (BFSFind(blocksActivated [0], blocksActivated [1]))) {
 					ChangeToZeroBlock (blocksActivated [0]);
 					ChangeToZeroBlock (blocksActivated [1]);
-					Debug.Log ("GOV=====");
-
+					lineColor = Color.clear;
+					founded = false;
 					Debug.Log (CheckGameOver ());
-					Debug.Log ("END=====");
 
 				} else {
 					blocksActivated [0].isActivated = false;
 					blocksActivated [1].isActivated = false;
 				}
-
 				numBlockActivated = 0;
 			}
 		}
@@ -170,11 +173,11 @@ public class GameController : MonoBehaviour
 		BlockController current;
 		while (i < path.Count) {
 			current = path[i];
-			if (i-1 >= 0) {
-				if (i-2 >= 0) {
-					if ((current.x != path[i-1].x) && (path[i-2].x == path[i-1].x))
+			if (i - 1 >= 0) {
+				if (i - 2 >= 0) {
+					if ((current.x != path [i - 1].x) && (path [i - 2].x == path [i - 1].x))
 						count++;
-					if ((current.y != path[i-1].y) && (path[i-2].y == path[i-1].y))
+					if ((current.y != path [i - 1].y) && (path [i - 2].y == path [i - 1].y))
 						count++;
 				}
 			}
@@ -210,17 +213,19 @@ public class GameController : MonoBehaviour
 		var neighbor = GetNeighbor (targetBlock);
 		foreach (BlockController neighborBlock in neighbor) {
 
-			if (neighborBlock.value == 0) {
-				return false;
+			if (CompareBlock(neighborBlock,targetBlock)) {
+				return true;
 			}
 		}
-		return true;
+		return false;
 	}
 	bool BFSFind(BlockController block, BlockController targetBlock)
 	{
-//		Debug.Log ("=====");
 
 		if (CheckTarget (block, targetBlock)) {
+			if (path.Count == 0) {
+				DrawLine (block.transform.position, targetBlock.transform.position);
+			}
 			return true;
 		}
 		if (CheckZero (targetBlock))
@@ -238,9 +243,16 @@ public class GameController : MonoBehaviour
 					path.Add (neighborBlock);
 					path.Add (targetBlock);
 					if (Check2Turn (path)) {
-						Debug.Log ("LP=====");
 						DebugPath (path);
-						founded = true;
+						{
+							founded = true;
+							if (!isDrawed) {
+								for (int i = 0; i < path.Count - 1; i++) {
+									DrawLine (path [i].transform.position, path [i + 1].transform.position);
+								}
+								isDrawed = true;
+							}
+						}
 					}
 					path.Remove (targetBlock);
 					path.Remove (neighborBlock);
@@ -273,9 +285,6 @@ public class GameController : MonoBehaviour
 						for (int j = 1; j < gridSizeY - 1; j++) {
 							if ((board [x, y].value == board [i, j].value) && (!CompareBlock(board[i,j],board[x,y]))
 								&& BFSFind (board [x, y], board [i, j])) {
-								Debug.Log (i + "=" + j + "-" + x +"=" +y);
-								Debug.Log ((board [x, y].value == board [i, j].value));
-								Debug.Log (!CompareBlock(board[i,j],board[x,y]));
 								return false;
 							}
 						}
@@ -283,5 +292,19 @@ public class GameController : MonoBehaviour
 			}
 
 		return true;
+	}
+
+	void DrawLine(Vector3 start, Vector3 end, float duration = 0.2f)
+	{
+		GameObject myLine = new GameObject();
+		myLine.transform.position = start;
+		myLine.AddComponent<LineRenderer>();
+		LineRenderer lr = myLine.GetComponent<LineRenderer>();
+		lr.material = new Material(Shader.Find("Particles/Alpha Blended Premultiply"));
+		lr.SetColors(lineColor, lineColor);
+		lr.SetWidth(0.1f, 0.1f);
+		lr.SetPosition(0, start);
+		lr.SetPosition(1, end);
+		GameObject.Destroy(myLine, duration);
 	}
 }
