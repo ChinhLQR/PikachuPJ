@@ -45,27 +45,39 @@ public class GameController : MonoBehaviour
 	private float offsetX;
 	[SerializeField]
 	private BlockController[] blocks;
-
+	private List<BlockController>[] listPath;
+	bool founded = false;
 	public void Start()
 	{
 		numBlockActivated = 0;
 		InstanceBlocks();
-
+		path = new List<BlockController> ();
 		score = 0;
 	}
-
 	void InstanceBlocks()
 	{	
+
+		List<int> save2 = new List<int> ();
+
+		Random rnd = new Random ();
 		board = new BlockController[gridSizeX, gridSizeY];
 		for (int x = 0; x < gridSizeX; x++) {
 			for (int y = 0; y < gridSizeY; y++) {
-				
+
 				var pos = ConvertBoardToPosition (x, y);
 				int value;
 				if (x == 0 || y == 0 || x == gridSizeX - 1 || y == gridSizeY - 1) {
 					value = 0;
+				} else if (x <= 5) {
+					value = (int)Random.Range (1f, 20f);
+					save2.Add (value);
+//					Debug.Log (save2.Count);
+
 				} else {
-					value = (int)Random.Range (1f, 12f);
+					int ran = 0;
+					ran = Random.Range (0, save2.Count - 1);
+					value = save2 [ran];
+					save2.RemoveAt (ran);
 				}
 				var block = Instantiate (blocks [value], pos, blocks [value].transform.rotation);
 				block.Init (x, y);
@@ -73,7 +85,7 @@ public class GameController : MonoBehaviour
 				if (x == 0 || y == 0 || x == gridSizeX - 1 || y == gridSizeY - 1) {
 					block.gameObject.SetActive (false);
 				}
-					
+
 			}
 		}
 
@@ -87,7 +99,7 @@ public class GameController : MonoBehaviour
 
 	private BlockController[] blocksActivated = new BlockController[2];
 
-	public void CheckTap (BlockController blockTap)
+	public void CheckClick (BlockController blockTap)
 	{
 		if (!blockTap.isActivated) {
 			blocksActivated [numBlockActivated] = blockTap;
@@ -97,9 +109,9 @@ public class GameController : MonoBehaviour
 			if (numBlockActivated == 2) { 
 
 				// Check Path neu co thi xoa khong thi de-active
-
+				founded = false;
 				if ((blocksActivated [0].value == blocksActivated [1].value)
-					&& (BFSFindPath (blocksActivated [0], blocksActivated [1]))) {
+					&& (BFSFind(blocksActivated [0], blocksActivated [1]))) {
 					ChangeToZeroBlock (blocksActivated [0]);
 					ChangeToZeroBlock (blocksActivated [1]);
 					Debug.Log (CheckGameOver ());
@@ -122,8 +134,7 @@ public class GameController : MonoBehaviour
 		blockNew.gameObject.SetActive (false);
 		block.DestroyBlock ();
 	}
-		
-
+	// Kiem tra ra khoi board
 	bool CheckOutOfRange(int posX, int posY) {
 		if (posX < 0 || posY < 0 || gridSizeX <= posX || gridSizeY <= posY)
 			return true;
@@ -147,71 +158,83 @@ public class GameController : MonoBehaviour
 			neighbor.Add (board [block.x, block.y - 1]);
 		return neighbor;
 	}
-	//Tim duong di 
-
-
-	bool BFSFindPath(BlockController block, BlockController targetBlock)
-	{
-		Debug.Log ("=====");
-		Stack<BlockController> list = new Stack<BlockController>();
-		BlockController currentBlock;
-		BlockController lastBlock;
-		BlockController[,] parentBlock = new BlockController[gridSizeX, gridSizeY];
-		bool isColing = false;
-
-		int[,] visit = new int[gridSizeX, gridSizeY];
-		//Khoi tao mang visit dnah dau da tham va hoan thanh tham
-		for (int i = 0; i < gridSizeX; i++)
-		{
-			for (int j = 0; j < gridSizeY; j++)
-			{
-				visit[i, j] = 0; // = 0 la chua tham
+	private BlockController[,] parentBlock;
+	private List<BlockController> path;
+	//Kiem tra ngoat
+	bool Check2Turn(List<BlockController> path) {
+		int count = 0;
+		int i = 0;
+		BlockController current;
+		while (i < path.Count) {
+			current = path[i];
+			//Debug.Log (count);
+			if (i-1 >= 0) {
+				if (i-2 >= 0) {
+					if ((current.x != path[i-1].x) && (path[i-2].x == path[i-1].x))
+						count++;
+					if ((current.y != path[i-1].y) && (path[i-2].y == path[i-1].y))
+						count++;
+				}
 			}
+			i++;
+			if (count > 2)
+				return false;
 		}
-		int count2 = 0;
-		list.Push(block);
-		while (list.Count > 0)
-		{
-//			Debug.Log ("A");
-			currentBlock = list.Pop();
-
-			var parent1 = parentBlock[currentBlock.x,currentBlock.y];
-			if (parent1 != null) {
-				var parent2 = parentBlock [parent1.x, parent1.y];
-				if (parent2 != null) {
-					if ((currentBlock.x != parent1.x) && (parent2.x == parent1.x))
-						count2++;
-					if ((currentBlock.y != parent1.y) && (parent2.y == parent1.y))
-						count2++;
-				}
-				if (count2 > 2) {
-					count2 = 0;
-					continue;
-				}
-			}
-			visit[currentBlock.x, currentBlock.y] = 1; // = 1 la da tham
-			// Check 4 huong xem co target khong
-			//Debug.Log(currentBlock.x + "--" + currentBlock.y);
-			if (CompareBlock (currentBlock, targetBlock)) {
-				break;
-			}
-			var neighbor = GetNeighbor (currentBlock);
-			foreach (BlockController neighborBlock in neighbor) {
-				if ((visit [neighborBlock.x, neighborBlock.y] == 1) || (list.Contains (neighborBlock))) {
-					continue;
-				}
-				if ((CompareBlock (neighborBlock, targetBlock) || (neighborBlock.value == 0))) {
-					list.Push (neighborBlock);
-					parentBlock [neighborBlock.x, neighborBlock.y] = currentBlock;
-				}
-			}
-
-		}
-
-
-		if (parentBlock [targetBlock.x, targetBlock.y] == null)
-			return false;
 		return true;
+	}
+
+	bool CheckTarget(BlockController block, BlockController targetBlock)
+	{
+		var neighbor = GetNeighbor (block);
+		foreach (BlockController neighborBlock in neighbor) {
+
+			if (CompareBlock (neighborBlock, targetBlock)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	bool CheckZero(BlockController targetBlock)
+	{
+		var neighbor = GetNeighbor (targetBlock);
+		foreach (BlockController neighborBlock in neighbor) {
+
+			if (neighborBlock.value == 0) {
+				return false;
+			}
+		}
+		return true;
+	}
+	bool BFSFind(BlockController block, BlockController targetBlock)
+	{
+//		Debug.Log ("=====");
+
+		if (CheckTarget (block, targetBlock))
+			return true;
+		if (CheckZero (targetBlock))
+			return false;
+		if (founded) return founded;
+		if (!Check2Turn (path))
+			return false;
+		path.Add (block);
+//		Debug.Log (block.x + "--" + block.y);
+
+		var neighbor = GetNeighbor (block);
+		foreach (BlockController neighborBlock in neighbor) {
+			if ((neighborBlock.value == 0) && !path.Contains (neighborBlock)) {
+				if (CheckTarget (neighborBlock, targetBlock)) {
+					path.Add (targetBlock);
+					if (Check2Turn (path))
+						founded = true;
+					path.Remove (targetBlock);
+				}
+				BFSFind (neighborBlock, targetBlock);
+			}
+		}
+
+		path.RemoveAt (path.Count - 1);
+			return founded;
 
 	}
 
@@ -232,7 +255,7 @@ public class GameController : MonoBehaviour
 					for (int i = 1; i < gridSizeX - 1; i++)
 						for (int j = 1; j < gridSizeY - 1; j++) {
 							if ((board [x, y].value == board [i, j].value) && (!CompareBlock(board[i,j],board[x,y]))
-								&& (BFSFindPath (board [x, y], board [i, j]))) {
+								&& BFSFind (board [x, y], board [i, j])) {
 								return true;
 							}
 						}

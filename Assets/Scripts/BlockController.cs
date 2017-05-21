@@ -82,7 +82,7 @@ public class BlockController : MonoBehaviour
 
 	public void OnMouseDown()
 	{
-		GameController.Instance.CheckTap(this);
+		GameController.Instance.CheckClick(this);
 	}
 
 }
