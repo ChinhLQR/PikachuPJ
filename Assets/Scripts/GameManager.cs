@@ -69,6 +69,7 @@ public class GameManager : MonoBehaviour {
 			GameController.Instance.InstanceBlocks ();
 		} else 
 		{
+			panelController.GetComponent<PanelController> ().ShowWinPanel ();
 			Debug.Log ("U win son");
 
 			Debug.Log ("Total Score: " + score);
