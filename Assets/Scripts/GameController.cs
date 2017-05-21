@@ -68,7 +68,7 @@ public class GameController : MonoBehaviour
 				if (x == 0 || y == 0 || x == gridSizeX - 1 || y == gridSizeY - 1) {
 					value = 0;
 				} else if (x <= 5) {
-					value = (int)Random.Range (1f, 20f);
+					value = (int)Random.Range (1f, 5f);
 					save2.Add (value);
 //					Debug.Log (save2.Count);
 
@@ -82,7 +82,7 @@ public class GameController : MonoBehaviour
 				block.Init (x, y);
 				board [x, y] = block;
 				if (x == 0 || y == 0 || x == gridSizeX - 1 || y == gridSizeY - 1) {
-					block.gameObject.SetActive (false);
+//					block.gameObject.SetActive (false);
 				}
 
 			}
@@ -113,7 +113,11 @@ public class GameController : MonoBehaviour
 					&& (BFSFind(blocksActivated [0], blocksActivated [1]))) {
 					ChangeToZeroBlock (blocksActivated [0]);
 					ChangeToZeroBlock (blocksActivated [1]);
-//					Debug.Log (CheckGameOver ());
+					Debug.Log ("GOV=====");
+
+					Debug.Log (CheckGameOver ());
+					Debug.Log ("END=====");
+
 				} else {
 					blocksActivated [0].isActivated = false;
 					blocksActivated [1].isActivated = false;
@@ -130,7 +134,7 @@ public class GameController : MonoBehaviour
 		var blockNew =Instantiate (blocks [0], pos, blocks [0].transform.rotation);
 		blockNew.Init (block.x, block.y);
 		board [block.x, block.y] = blockNew;
-		blockNew.gameObject.SetActive (false);
+//		blockNew.gameObject.SetActive (false);
 		block.DestroyBlock ();
 	}
 	// Kiem tra ra khoi board
@@ -182,7 +186,6 @@ public class GameController : MonoBehaviour
 	}
 
 	void DebugPath(List<BlockController> path){
-		Debug.Log ("=====");
 		int i = 0;
 		while (i < path.Count) {
 			Debug.Log (path [i].x + "-" + path [i].y);
@@ -217,8 +220,9 @@ public class GameController : MonoBehaviour
 	{
 //		Debug.Log ("=====");
 
-		if (CheckTarget (block, targetBlock))
+		if (CheckTarget (block, targetBlock)) {
 			return true;
+		}
 		if (CheckZero (targetBlock))
 			return false;
 		if (founded) return founded;
@@ -234,6 +238,7 @@ public class GameController : MonoBehaviour
 					path.Add (neighborBlock);
 					path.Add (targetBlock);
 					if (Check2Turn (path)) {
+						Debug.Log ("LP=====");
 						DebugPath (path);
 						founded = true;
 					}
@@ -268,12 +273,15 @@ public class GameController : MonoBehaviour
 						for (int j = 1; j < gridSizeY - 1; j++) {
 							if ((board [x, y].value == board [i, j].value) && (!CompareBlock(board[i,j],board[x,y]))
 								&& BFSFind (board [x, y], board [i, j])) {
-								return true;
+								Debug.Log (i + "=" + j + "-" + x +"=" +y);
+								Debug.Log ((board [x, y].value == board [i, j].value));
+								Debug.Log (!CompareBlock(board[i,j],board[x,y]));
+								return false;
 							}
 						}
 				}
 			}
 
-		return false;
+		return true;
 	}
 }
