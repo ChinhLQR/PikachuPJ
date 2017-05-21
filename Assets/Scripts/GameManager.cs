@@ -48,6 +48,10 @@ public class GameManager : MonoBehaviour {
 		level = value;
 		levelText.text = "Level: " + level;
 	}
+	public int getLevel()
+	{
+		return level;
+	}
 	public void setScore(int value)
 	{
 		score = value;
@@ -69,9 +73,9 @@ public class GameManager : MonoBehaviour {
 			GameController.Instance.InstanceBlocks ();
 		} else 
 		{
-			Debug.Log ("U win son");
+			level = 1;
+			panelController.GetComponent<PanelController> ().ShowWinPanel ();
 
-			Debug.Log ("Total Score: " + score);
 		}
 		
 	}

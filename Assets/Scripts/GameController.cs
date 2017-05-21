@@ -77,7 +77,12 @@ public class GameController : MonoBehaviour
 				if (x == 0 || y == 0 || x == gridSizeX - 1 || y == gridSizeY - 1) {
 					value = 0;
 				} else if (x <= 5) {
-					value = (int)Random.Range (1f, 5f);
+					if (gameMng.getLevel () == 1) {
+						value = (int)Random.Range (1f, 7f);
+					} else if (gameMng.getLevel () == 2) {
+						value = (int)Random.Range (1f, 13f);
+					}
+					else value = (int)Random.Range (1f, 25f);
 					save2.Add (value);
 //					Debug.Log (save2.Count);
 

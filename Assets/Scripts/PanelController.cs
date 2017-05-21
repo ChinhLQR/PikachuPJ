@@ -39,5 +39,6 @@ public class PanelController : MonoBehaviour {
 		gameManager.setLevel(1);
 		gameManager.setScore(0);
 		LosePanel.gameObject.SetActive (false);
+		WinPanel.gameObject.SetActive (false);
 	}
 }
