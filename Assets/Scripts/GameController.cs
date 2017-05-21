@@ -38,7 +38,8 @@ public class GameController : MonoBehaviour
 
 	[SerializeField]
 	private Transform startPos;
-
+	[SerializeField]
+	private GameManager gameManager;
 	[SerializeField]
 	private float offsetY;
 	[SerializeField]
@@ -53,7 +54,7 @@ public class GameController : MonoBehaviour
 		path = new List<BlockController> ();
 		score = 0;
 	}
-	void InstanceBlocks()
+	public void InstanceBlocks()
 	{	
 
 		List<int> save2 = new List<int> ();
@@ -114,6 +115,14 @@ public class GameController : MonoBehaviour
 					ChangeToZeroBlock (blocksActivated [0]);
 					ChangeToZeroBlock (blocksActivated [1]);
 //					Debug.Log (CheckGameOver ());
+					gameManager.GetComponent<GameManager> ().updateScore ();
+					if (CheckWin ()) 
+					{
+						gameManager.GetComponent<GameManager> ().finishLevelScoreUpdate ();
+						gameManager.GetComponent<GameManager> ().setTime (121);
+						gameManager.GetComponent<GameManager> ().levelUp ();
+					} 
+					Debug.Log (CheckGameOver());
 				} else {
 					blocksActivated [0].isActivated = false;
 					blocksActivated [1].isActivated = false;
@@ -285,7 +294,7 @@ public class GameController : MonoBehaviour
 		return false;
 	}
 
-	void DrawLine(Vector3 start, Vector3 end, Color color, float duration = 5f)
+	void DrawLine(Vector3 start, Vector3 end, Color color, float duration = 0.0f)
 	{
 		GameObject myLine = new GameObject();
 		myLine.transform.position = start;
@@ -297,5 +306,20 @@ public class GameController : MonoBehaviour
 		lr.SetPosition(0, start);
 		lr.SetPosition(1, end);
 		GameObject.Destroy(myLine, duration);
+	}
+	private bool CheckWin()
+	{
+
+		foreach(BlockController block in board)
+		{
+			if (block.value != 0) 
+			{
+
+				return false;
+			}	
+		}
+
+
+		return true;
 	}
 }
