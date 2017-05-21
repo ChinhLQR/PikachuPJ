@@ -217,8 +217,11 @@ public class GameController : MonoBehaviour
 	{
 //		Debug.Log ("=====");
 
-		if (CheckTarget (block, targetBlock))
+		if (CheckTarget (block, targetBlock)) {
+			if (path.Count == 0)
+				DrawLine (block.transform.position, targetBlock.transform.position, Color.red);
 			return true;
+		}
 		if (CheckZero (targetBlock))
 			return false;
 		if (founded) return founded;
@@ -235,7 +238,12 @@ public class GameController : MonoBehaviour
 					path.Add (targetBlock);
 					if (Check2Turn (path)) {
 						DebugPath (path);
-						founded = true;
+						{
+							founded = true;
+							for (int i = 0; i < path.Count - 1; i++) {
+								DrawLine (path [i].transform.position, path [i + 1].transform.position, Color.red);
+							}
+						}
 					}
 					path.Remove (targetBlock);
 					path.Remove (neighborBlock);
@@ -275,5 +283,19 @@ public class GameController : MonoBehaviour
 			}
 
 		return false;
+	}
+
+	void DrawLine(Vector3 start, Vector3 end, Color color, float duration = 5f)
+	{
+		GameObject myLine = new GameObject();
+		myLine.transform.position = start;
+		myLine.AddComponent<LineRenderer>();
+		LineRenderer lr = myLine.GetComponent<LineRenderer>();
+		lr.material = new Material(Shader.Find("Particles/Alpha Blended Premultiply"));
+		lr.SetColors(color, color);
+		lr.SetWidth(0.1f, 0.1f);
+		lr.SetPosition(0, start);
+		lr.SetPosition(1, end);
+		GameObject.Destroy(myLine, duration);
 	}
 }
