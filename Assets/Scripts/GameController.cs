@@ -38,25 +38,28 @@ public class GameController : MonoBehaviour
 
 	[SerializeField]
 	private Transform startPos;
-
+	[SerializeField]
+	private GameManager gameManager;
 	[SerializeField]
 	private float offsetY;
 	[SerializeField]
 	private float offsetX;
 	[SerializeField]
 	private BlockController[] blocks;
+
 	private Color lineColor;
 	private bool founded = false;
 	private bool isDrawed = false;
-
+	private GameManager gameMng;
 	public void Start()
 	{
 		numBlockActivated = 0;
+		gameMng = gameManager.GetComponent<GameManager> ();
 		InstanceBlocks();
 		path = new List<BlockController> ();
 		score = 0;
 	}
-	void InstanceBlocks()
+	public void InstanceBlocks()
 	{	
 
 		List<int> save2 = new List<int> ();
@@ -71,7 +74,7 @@ public class GameController : MonoBehaviour
 				if (x == 0 || y == 0 || x == gridSizeX - 1 || y == gridSizeY - 1) {
 					value = 0;
 				} else if (x <= 5) {
-					value = (int)Random.Range (1f, 5f);
+					value = (int)Random.Range (1f, 21f);
 					save2.Add (value);
 //					Debug.Log (save2.Count);
 
@@ -85,7 +88,7 @@ public class GameController : MonoBehaviour
 				block.Init (x, y);
 				board [x, y] = block;
 				if (x == 0 || y == 0 || x == gridSizeX - 1 || y == gridSizeY - 1) {
-//					block.gameObject.SetActive (false);
+					block.gameObject.SetActive (false);
 				}
 
 			}
@@ -120,8 +123,15 @@ public class GameController : MonoBehaviour
 					ChangeToZeroBlock (blocksActivated [1]);
 					lineColor = Color.clear;
 					founded = false;
-					Debug.Log (CheckGameOver ());
 
+					gameMng.updateScore ();
+					if (CheckWin ()) 
+					{
+						gameMng.finishLevelScoreUpdate ();
+						gameMng.setTime (121);
+						gameMng.levelUp ();
+					} 
+					Debug.Log (CheckGameOver());
 				} else {
 					blocksActivated [0].isActivated = false;
 					blocksActivated [1].isActivated = false;
@@ -137,7 +147,7 @@ public class GameController : MonoBehaviour
 		var blockNew =Instantiate (blocks [0], pos, blocks [0].transform.rotation);
 		blockNew.Init (block.x, block.y);
 		board [block.x, block.y] = blockNew;
-//		blockNew.gameObject.SetActive (false);
+		blockNew.gameObject.SetActive (false);
 		block.DestroyBlock ();
 	}
 	// Kiem tra ra khoi board
@@ -306,5 +316,20 @@ public class GameController : MonoBehaviour
 		lr.SetPosition(0, start);
 		lr.SetPosition(1, end);
 		GameObject.Destroy(myLine, duration);
+	}
+	private bool CheckWin()
+	{
+
+		foreach(BlockController block in board)
+		{
+			if (block.value != 0) 
+			{
+
+				return false;
+			}	
+		}
+
+
+		return true;
 	}
 }
