@@ -45,7 +45,6 @@ public class GameController : MonoBehaviour
 	private float offsetX;
 	[SerializeField]
 	private BlockController[] blocks;
-	private List<BlockController>[] listPath;
 	bool founded = false;
 	public void Start()
 	{
@@ -114,7 +113,7 @@ public class GameController : MonoBehaviour
 					&& (BFSFind(blocksActivated [0], blocksActivated [1]))) {
 					ChangeToZeroBlock (blocksActivated [0]);
 					ChangeToZeroBlock (blocksActivated [1]);
-					Debug.Log (CheckGameOver ());
+//					Debug.Log (CheckGameOver ());
 				} else {
 					blocksActivated [0].isActivated = false;
 					blocksActivated [1].isActivated = false;
@@ -167,7 +166,6 @@ public class GameController : MonoBehaviour
 		BlockController current;
 		while (i < path.Count) {
 			current = path[i];
-			//Debug.Log (count);
 			if (i-1 >= 0) {
 				if (i-2 >= 0) {
 					if ((current.x != path[i-1].x) && (path[i-2].x == path[i-1].x))
@@ -181,6 +179,15 @@ public class GameController : MonoBehaviour
 				return false;
 		}
 		return true;
+	}
+
+	void DebugPath(List<BlockController> path){
+		Debug.Log ("=====");
+		int i = 0;
+		while (i < path.Count) {
+			Debug.Log (path [i].x + "-" + path [i].y);
+			i++;
+		}
 	}
 
 	bool CheckTarget(BlockController block, BlockController targetBlock)
@@ -224,10 +231,15 @@ public class GameController : MonoBehaviour
 		foreach (BlockController neighborBlock in neighbor) {
 			if ((neighborBlock.value == 0) && !path.Contains (neighborBlock)) {
 				if (CheckTarget (neighborBlock, targetBlock)) {
+					path.Add (neighborBlock);
 					path.Add (targetBlock);
-					if (Check2Turn (path))
+					if (Check2Turn (path)) {
+						DebugPath (path);
 						founded = true;
+					}
 					path.Remove (targetBlock);
+					path.Remove (neighborBlock);
+
 				}
 				BFSFind (neighborBlock, targetBlock);
 			}
