@@ -31,8 +31,6 @@ public class GameController : MonoBehaviour
 	private int gridSizeX = 12;
 	private int gridSizeY = 8;
 
-	private int score;
-
 	private BlockController[,] board;
 	private int numBlockActivated;
 
@@ -51,13 +49,18 @@ public class GameController : MonoBehaviour
 	private bool founded = false;
 	private bool isDrawed = false;
 	private GameManager gameMng;
+	private BlockController[] blocksActivated = new BlockController[2];
+	private List<BlockController> path;
+	private List<BlockController>[] listPath;
+	private int listPathLength;
+	private bool isCheckingOver;
 	public void Start()
 	{
 		numBlockActivated = 0;
 		gameMng = gameManager.GetComponent<GameManager> ();
 		InstanceBlocks();
 		path = new List<BlockController> ();
-		score = 0;
+		listPath = new List<BlockController>[100];
 	}
 	public void InstanceBlocks()
 	{	
@@ -74,7 +77,7 @@ public class GameController : MonoBehaviour
 				if (x == 0 || y == 0 || x == gridSizeX - 1 || y == gridSizeY - 1) {
 					value = 0;
 				} else if (x <= 5) {
-					value = (int)Random.Range (1f, 21f);
+					value = (int)Random.Range (1f, 5f);
 					save2.Add (value);
 //					Debug.Log (save2.Count);
 
@@ -102,7 +105,6 @@ public class GameController : MonoBehaviour
 		return startPos.position + offset;
 	}
 
-	private BlockController[] blocksActivated = new BlockController[2];
 
 	public void CheckClick (BlockController blockTap)
 	{
@@ -115,15 +117,23 @@ public class GameController : MonoBehaviour
 
 				// Check Path neu co thi xoa khong thi de-active
 				founded = false;
-				lineColor = Color.red;
 				isDrawed = false;
+				isCheckingOver = false;
+				lineColor = Color.red;
+
+				listPathLength = 0;
 				if ((blocksActivated [0].value == blocksActivated [1].value)
 					&& (BFSFind(blocksActivated [0], blocksActivated [1]))) {
 					ChangeToZeroBlock (blocksActivated [0]);
 					ChangeToZeroBlock (blocksActivated [1]);
-					lineColor = Color.clear;
+					if (listPathLength != 0) {
+						var minPath = FindMinPath (listPath);
+//						DebugPath (minPath);
+						for (int i = 0; i < minPath.Count - 1; i++) {
+							DrawLine (minPath [i].transform.position, minPath [i + 1].transform.position);
+						}
+					}
 					founded = false;
-
 					gameMng.updateScore ();
 					if (CheckWin ()) 
 					{
@@ -131,7 +141,10 @@ public class GameController : MonoBehaviour
 						gameMng.setTime (121);
 						gameMng.levelUp ();
 					} 
+					isCheckingOver = true;
 					Debug.Log (CheckGameOver());
+					Debug.Log (listPathLength);
+
 				} else {
 					blocksActivated [0].isActivated = false;
 					blocksActivated [1].isActivated = false;
@@ -140,6 +153,20 @@ public class GameController : MonoBehaviour
 			}
 		}
 	}
+
+	List<BlockController> FindMinPath(List<BlockController>[] listPath) {
+		List<BlockController> minPath = new List<BlockController>();
+		minPath = listPath [0];
+		if (listPathLength >= 1) {
+			for (int i = 0; i < listPathLength; i++) {
+				if (listPath [i].Count < minPath.Count) {
+					minPath = listPath [i];
+				}
+			}
+		}
+		return minPath;
+	}
+
 
 	public void ChangeToZeroBlock(BlockController block) {
 		var pos = ConvertBoardToPosition (block.x, block.y);
@@ -174,8 +201,6 @@ public class GameController : MonoBehaviour
 			neighbor.Add (board [block.x, block.y - 1]);
 		return neighbor;
 	}
-	private BlockController[,] parentBlock;
-	private List<BlockController> path;
 	//Kiem tra ngoat
 	bool Check2Turn(List<BlockController> path) {
 		int count = 0;
@@ -199,11 +224,14 @@ public class GameController : MonoBehaviour
 	}
 
 	void DebugPath(List<BlockController> path){
+		Debug.Log ("+++++");
 		int i = 0;
-		while (i < path.Count) {
-			Debug.Log (path [i].x + "-" + path [i].y);
-			i++;
-		}
+		if (path != null)
+			while (i < path.Count) {
+				Debug.Log (path [i].x + "-" + path [i].y);
+				i++;
+			}
+		Debug.Log ("+++++");
 	}
 
 	bool CheckTarget(BlockController block, BlockController targetBlock)
@@ -234,13 +262,16 @@ public class GameController : MonoBehaviour
 
 		if (CheckTarget (block, targetBlock)) {
 			if (path.Count == 0) {
-				DrawLine (block.transform.position, targetBlock.transform.position);
+				if (!isCheckingOver) {
+					DrawLine (block.transform.position, targetBlock.transform.position);
+				}
 			}
 			return true;
 		}
 		if (CheckZero (targetBlock))
 			return false;
-		if (founded) return founded;
+		if (isCheckingOver)
+			if (founded) return founded;
 		if (!Check2Turn (path))
 			return false;
 		path.Add (block);
@@ -253,15 +284,19 @@ public class GameController : MonoBehaviour
 					path.Add (neighborBlock);
 					path.Add (targetBlock);
 					if (Check2Turn (path)) {
-						DebugPath (path);
+//						DebugPath (path);
 						{
-							founded = true;
-							if (!isDrawed) {
-								for (int i = 0; i < path.Count - 1; i++) {
-									DrawLine (path [i].transform.position, path [i + 1].transform.position);
-								}
-								isDrawed = true;
-							}
+							if (!isCheckingOver) {
+								listPath [listPathLength] = new List<BlockController> (path);
+								
+								listPathLength++;
+							} else
+								founded = true;
+
+//							if (!isDrawed) {
+//								DrawPath (path);
+//								isDrawed = true;
+//							}
 						}
 					}
 					path.Remove (targetBlock);
@@ -273,8 +308,9 @@ public class GameController : MonoBehaviour
 		}
 
 		path.RemoveAt (path.Count - 1);
-			return founded;
-
+		if (!isCheckingOver && listPathLength != 0)
+			founded = true;
+		return founded;
 	}
 
 	public void ClearBoard()
@@ -317,6 +353,7 @@ public class GameController : MonoBehaviour
 		lr.SetPosition(1, end);
 		GameObject.Destroy(myLine, duration);
 	}
+
 	private bool CheckWin()
 	{
 
