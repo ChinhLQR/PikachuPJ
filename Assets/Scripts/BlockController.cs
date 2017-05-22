@@ -56,8 +56,6 @@ public class BlockController : MonoBehaviour
 	{
 		this.x = x;
 		this.y = y;
-		//this.value = value;
-
 		gameObject.name = x + "-" + y;
 	}
 
@@ -71,7 +69,6 @@ public class BlockController : MonoBehaviour
 		if (selectedObject != null) {
 			selectedObject = transform.GetChild (0).gameObject;
 			selectedObject.SetActive (isActivated);
-
 		}
 	}
 

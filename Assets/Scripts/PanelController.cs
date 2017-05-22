@@ -6,20 +6,18 @@ using UnityEngine.UI;
 public class PanelController : MonoBehaviour {
 
 	[SerializeField]
-	GameObject LosePanel;
+	private GameObject LosePanel;
 	[SerializeField]
-	GameObject WinPanel;
-
+	private GameObject WinPanel;
 	[SerializeField]
 	private GameManager gameManager;
-
-	public Text scoreText;
+	[SerializeField]
+	private Text scoreText;
 
 	void Start()
 	{
 		gameManager = gameManager.GetComponent<GameManager> ();
 	}
-
 
 	public void ShowLosePanel()
 	{
@@ -29,15 +27,16 @@ public class PanelController : MonoBehaviour {
 	public void ShowWinPanel()
 	{
 		WinPanel.gameObject.SetActive (true);
-		scoreText.text = "Score: " + gameManager.getScore();
+		scoreText.text = "Score: " + gameManager.getScore ();
 	}
+
 	public void Restart()
 	{
 		GameController.Instance.ClearBoard ();
 		GameController.Instance.InstanceBlocks ();
-		gameManager.setTime(120f);
-		gameManager.setLevel(1);
-		gameManager.setScore(0);
+		gameManager.setTime (121f);
+		gameManager.setLevel (1);
+		gameManager.setScore (0);
 		LosePanel.gameObject.SetActive (false);
 		WinPanel.gameObject.SetActive (false);
 	}

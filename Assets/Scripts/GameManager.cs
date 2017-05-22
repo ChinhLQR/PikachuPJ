@@ -6,35 +6,29 @@ using UnityEngine.UI;
 public class GameManager : MonoBehaviour {
 
 	[SerializeField]
-	Text timeText;
-
+	private Text timeText;
 	[SerializeField]
-	Text scoreText;
-
+	private Text scoreText;
 	[SerializeField]
-	Text levelText;
-
+	private Text levelText;
 	[SerializeField]
 	private PanelController panelController;
 
-
-	private float timeLeft = 120f;
+	private float timeLeft = 121f;
 	private int score = 0;
 	private int level = 1;
+
 	void Start()
 	{
-
 		timeText.text = "Time: " + timeLeft;
 		scoreText.text = "Score: " + score;
 		levelText.text = "Level: " + level;
 	}
 
-
-	void Update () 
+	void Update ()
 	{
-		if(timeLeft>=0)
-		updateTime ();
-
+		if (timeLeft >= 0)
+			updateTime ();
 	}
 
 	public void setTime(float value)
@@ -48,21 +42,22 @@ public class GameManager : MonoBehaviour {
 		level = value;
 		levelText.text = "Level: " + level;
 	}
+
 	public int getLevel()
 	{
 		return level;
 	}
+
 	public void setScore(int value)
 	{
 		score = value;
 		scoreText.text = "Score: " + score;
-
 	}
+
 	public int getScore()
 	{
 		return score;
 	}
-
 
 	public void levelUp()
 	{
@@ -71,13 +66,10 @@ public class GameManager : MonoBehaviour {
 			levelText.text = "Level: " + level;
 			GameController.Instance.ClearBoard ();
 			GameController.Instance.InstanceBlocks ();
-		} else 
-		{
+		} else {
 			level = 1;
 			panelController.GetComponent<PanelController> ().ShowWinPanel ();
-
 		}
-		
 	}
 	public void updateScore()
 	{
@@ -93,16 +85,12 @@ public class GameManager : MonoBehaviour {
 
 	public void updateTime()
 	{
-		
 		timeLeft -= Time.deltaTime;
-		if (timeLeft <= 0) 
-		{
+		if (timeLeft <= 0) {
 			panelController.GetComponent<PanelController> ().ShowLosePanel ();
 			Debug.Log ("YouLose");
 		}
-		if(timeLeft>=0)
+		if (timeLeft >= 0)
 			timeText.text = "Time: " + (int)timeLeft;
 	}
-		
-
 }
